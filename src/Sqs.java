@@ -57,8 +57,8 @@ public class Sqs {
         }
 
         sqs = new AmazonSQSClient(credentials);
-        Region usWest2 = Region.getRegion(Regions.US_WEST_2);
-        sqs.setRegion(usWest2);
+        Region usEast1 = Region.getRegion(Regions.US_EAST_1);
+        sqs.setRegion(usEast1);
         System.out.println("Finish initializing sqs service");
 	}
 	

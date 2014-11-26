@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 
+import com.google.gson.Gson;
+
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -26,6 +28,8 @@ public final class TweetGet {
 	static Rds rds;
 	static Sqs sqs;
 	static String queueUrl = null;
+	static Gson gson = new Gson();
+	
     /**
      * Main entry of this application.
      *
@@ -67,7 +71,8 @@ public final class TweetGet {
                 System.out.println("Keyword:" + keyword + "User:" + user + " Text:" + text+ " Created_at:"+ created_at + " id:"+id_str);
                 rds.insert(String.valueOf(id_str), keyword, user, text, String.valueOf(latitude), String.valueOf(longitude), created_at);
                 //TODO: send what kind of message?
-                sqs.sendMessage(queueUrl, String.valueOf(id_str));
+                Tweet tweet = new Tweet(id_str, created_at, text, user, longitude, latitude);
+                sqs.sendMessage(queueUrl, gson.toJson(tweet));
         	}
         	
             @Override
