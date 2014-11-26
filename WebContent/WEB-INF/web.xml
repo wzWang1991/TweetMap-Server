@@ -9,4 +9,14 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
+  <servlet>
+    <description></description>
+    <display-name>getTweets</display-name>
+    <servlet-name>getTweets</servlet-name>
+    <servlet-class>getTweets</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>getTweets</servlet-name>
+    <url-pattern>/getTweets</url-pattern>
+  </servlet-mapping>
 </web-app>
