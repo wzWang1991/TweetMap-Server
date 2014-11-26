@@ -19,4 +19,7 @@
     <servlet-name>getTweets</servlet-name>
     <url-pattern>/getTweets</url-pattern>
   </servlet-mapping>
+  <listener>
+    <listener-class>TweetFetcher</listener-class>
+  </listener>
 </web-app>

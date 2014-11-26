@@ -24,11 +24,13 @@ import twitter4j.conf.ConfigurationBuilder;
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
 public final class TweetGet {
-	static List<String> keywords = new ArrayList<String>();
-	static Rds rds;
-	static Sqs sqs;
-	static String queueUrl = null;
+	List<String> keywords = new ArrayList<String>();
+	Rds rds;
+	Sqs sqs;
+	String queueUrl = null;
+	TwitterStream twitterStream;
 	static Gson gson = new Gson();
+	
 	
     /**
      * Main entry of this application.
@@ -36,8 +38,7 @@ public final class TweetGet {
      * @param args
      * @throws IOException 
      */
-    public static void main(String[] args) throws TwitterException, IOException {
-    	//just fill this
+	public TweetGet() throws IOException {
     	Properties twitterKey = new Properties();
     	twitterKey.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("twitterKey.ini"));
     	ConfigurationBuilder cb = new ConfigurationBuilder();
@@ -64,7 +65,7 @@ public final class TweetGet {
         keywords.add("food");
         keywords.add("soccer");
         
-        TwitterStream twitterStream = new TwitterStreamFactory(cb.build()).getInstance();
+        twitterStream = new TwitterStreamFactory(cb.build()).getInstance();
         StatusListener listener = new StatusListener() {
         	
         	public void handleTweet(String keyword, long id_str, String text, String user, String created_at, double latitude, double longitude){	
@@ -117,14 +118,18 @@ public final class TweetGet {
             }
         };
         twitterStream.addListener(listener);
+	}
+	
+    public void start() {
         twitterStream.sample();
     }
     
-	private static String readPass() {
+	private String readPass() {
 		InputStream password = Thread.currentThread().getContextClassLoader().getResourceAsStream("pass.ini");
         String pass = null;
         pass = new Scanner(password).next();
         return pass;
 	}
     
+	
 }
