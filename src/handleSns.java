@@ -81,6 +81,7 @@ public class handleSns extends HttpServlet {
 				logMsgAndSubject += " Subject: " + message.Subject;
 			logMsgAndSubject += " Message: " + message.Message;
 			System.out.println(logMsgAndSubject);
+			WebSocketHandler.getInstance().publish(logMsgAndSubject);
 		}
 		else if (messagetype.equals("SubscriptionConfirmation"))
 		{
