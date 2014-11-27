@@ -30,7 +30,7 @@ public class TweetFetcher implements ServletContextListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	tweetGet.start();
+//    	tweetGet.start();
     }
 
 	/**
