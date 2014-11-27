@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 
+import com.amazonaws.auth.PropertiesCredentials;
 import com.google.gson.Gson;
 
 /**
@@ -81,7 +82,7 @@ public class handleSns extends HttpServlet {
 				logMsgAndSubject += " Subject: " + message.Subject;
 			logMsgAndSubject += " Message: " + message.Message;
 			System.out.println(logMsgAndSubject);
-			WebSocketHandler.getInstance().publish(logMsgAndSubject);
+			WbHandler.broadcast(message.Message);
 		}
 		else if (messagetype.equals("SubscriptionConfirmation"))
 		{
