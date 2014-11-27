@@ -2,12 +2,16 @@
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.gson.Gson;
 
 /**
  * Servlet implementation class getTweets
@@ -35,6 +39,23 @@ public class getTweets extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		String keyword = request.getParameter("keyword");
+		String startTime = request.getParameter("start");
+		response.setContentType("application/json");
+		PrintWriter out = response.getWriter();
+		List<TweetRequest> list = null;
+		Rds rds = Rds.getInstance();
+		if (!rds.isPasswordSet())
+			rds.setPassword(readPass());
+		try {
+			list = rds.select(keyword, startTime);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Gson gson = new Gson();
+        out.print(gson.toJson(list));
+        out.flush();
 	}
 	
 	private String readPass() {
