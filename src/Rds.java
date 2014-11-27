@@ -185,6 +185,9 @@ public class Rds {
             ResultSet rs = stmt.executeQuery(sql);
 
             while(rs.next()){
+            	
+            	Boolean sen = rs.getBoolean("sentiment_exist");
+            	if (sen) {
             	String id = rs.getString("id_str");
 
             	String text = rs.getString("text");
@@ -193,12 +196,12 @@ public class Rds {
             	String c1 = rs.getString("latitude");
             	String c2 = rs.getString("longitude");
             	String time = rs.getString("created_at");
-            	Boolean sen = rs.getBoolean("sentiment_exist");
             	String sentiment = rs.getString("sentiment");
 
             	res.add(new TweetRequest(id, time, text, user, Double.valueOf(c2), Double.valueOf(c1), Double.valueOf(sentiment)));
 
                 count++;
+            	}
             }
 
             rs.close();
