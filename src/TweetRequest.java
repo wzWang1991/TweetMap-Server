@@ -13,6 +13,17 @@ public class TweetRequest {
     private double latitude;
     private double sentiment;
     
+    public TweetRequest(String id_str, String created_at, String text, String user, double 
+    		longitude, double latitude, double sentiment) {
+    	this.id_str=id_str;
+    	this.created_at=created_at;
+    	this.text=text;
+    	this.user=user;
+    	this.longitude=longitude;
+    	this.latitude=latitude;
+    	this.sentiment=sentiment;
+    }
+    
 	public String getId_str() {
 		return id_str;
 	}
