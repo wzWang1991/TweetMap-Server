@@ -60,7 +60,7 @@
     <div class="row">
         <div class="col-md-3">
             <p>Start time:</p>
-            <input type="date" name="startdate" id="startdate">
+            <input type="date" name="startdate" id="startdate" value="2014-11-26">
             <p>
                 Key word:
             </p>
@@ -71,7 +71,16 @@
                 <option>food</option>
             </select>
             <br/>
+            <div class="row">
+                <div class="col-md-8"><button type="button" class="btn btn-primary btn-block" id="btn-getdata">Get data from DB</button></div>
+                <div class="col-md-4">
 
+                </div>
+            </div>
+            <div>Reads <span id="numoftweets">0</span> tweets from database.</div>
+
+            <br/>
+            <br/>
             <p>
                 Choose a mode:
             </p>
@@ -161,7 +170,7 @@
 <script src="http://fgnass.github.io/spin.js/spin.min.js"></script>
 <script src="dist/js/markercluster.js"></script>
 <script type="text/javascript">
-    var map, heatmap;
+    var map, heatmap_positive, heatmap_negetive;
     var markers = [];
     var mapOptions = {
         center: new google.maps.LatLng(20, 10),
@@ -229,40 +238,76 @@
 
     var total_sentiment = 0;
     var total_counter = 0;
-    function displayTweet(msg) {
-        clearMap();
-        total_sentiment = 0;
-        total_counter = 0;
-        for (var i = 0; i < msg.length; i++) {
-            var point = msg[i];
+    var sentiment_positive = [];
+    var sentiment_negative = [];
+    var sentiment_neutral = [];
+    var sentiment_all = [];
+    var real_total_sentiment = 0;
+    var real_counter = 0;
+
+
+    function displayTweet() {
+        for (var i = 0; i < sentiment_all.length; i++) {
+            var point = sentiment_all[i];
             var myLatlng = new google.maps.LatLng(point['latitude'], point['longitude']);
-            addTweetMarker(myLatlng, point['text']);
+            addTweetMarker(myLatlng, point['user'] + ": " + point['text'] + " | Sentiment: " + point['sentiment']);
             total_sentiment = total_sentiment + point['sentiment'];
         }
         mc = new MarkerClusterer(map, markers);
-        total_counter = total_counter + msg.length;
-        var overall_sentiment = total_sentiment / total_counter;
+        var overall_sentiment = (total_sentiment + real_total_sentiment) / (total_counter + real_counter);
         $('#overall_sentiment').html(overall_sentiment);
     }
 
-    function displayHeatMap(msg) {
+    function displayHeatMap() {
         clearMap();
-        var tweetPoints = [];
-        for (var i = 0; i < msg.length; i++) {
-            var point = msg[i];
+        // Positive
+        var tweetPoints_positive = [];
+        for (var i = 0; i < sentiment_positive.length; i++) {
+            var point = sentiment_positive[i];
             var myLatlng = new google.maps.LatLng(point['latitude'], point['longitude']);
-            tweetPoints.push(myLatlng);
+            tweetPoints_positive.push(myLatlng);
         }
-        var pointArray = new google.maps.MVCArray(tweetPoints);
-        heatmap = new google.maps.visualization.HeatmapLayer({
-            data: pointArray
+        var pointArray_positive = new google.maps.MVCArray(tweetPoints_positive);
+        heatmap_positive = new google.maps.visualization.HeatmapLayer({
+            data: pointArray_positive
         });
-        heatmap.setMap(map);
+        heatmap_positive.setMap(map);
+        // Negetive
+        var tweetPoints_negetive = [];
+        for (var i = 0; i < sentiment_negative.length; i++) {
+            var point = sentiment_negative[i];
+            var myLatlng = new google.maps.LatLng(point['latitude'], point['longitude']);
+            tweetPoints_negetive.push(myLatlng);
+        }
+        var pointArray_negetive = new google.maps.MVCArray(tweetPoints_negetive);
+        heatmap_negetive = new google.maps.visualization.HeatmapLayer({
+            data: pointArray_negetive
+        });
+        heatmap_negetive.setMap(map);
+        var gradient = [
+            'rgba(0, 255, 255, 0)',
+            'rgba(0, 255, 255, 1)',
+            'rgba(0, 191, 255, 1)',
+            'rgba(0, 127, 255, 1)',
+            'rgba(0, 63, 255, 1)',
+            'rgba(0, 0, 255, 1)',
+            'rgba(0, 0, 223, 1)',
+            'rgba(0, 0, 191, 1)',
+            'rgba(0, 0, 159, 1)',
+            'rgba(0, 0, 127, 1)',
+            'rgba(63, 0, 91, 1)',
+            'rgba(127, 0, 63, 1)',
+            'rgba(191, 0, 31, 1)',
+            'rgba(255, 0, 0, 1)'
+        ];
+        heatmap_negetive.set('gradient', gradient);
     }
 
     function clearMap() {
-        if (heatmap != null)
-            heatmap.setMap(null);
+        if (heatmap_positive != null)
+            heatmap_positive.setMap(null);
+        if (heatmap_negetive != null)
+            heatmap_negetive.setMap(null);
         for (var i = 0; i < markers.length; i++) {
             markers[i].setMap(null);
         }
@@ -270,11 +315,10 @@
         mc.clearMarkers();
     }
 
-    function getData(func) {
+    function getData() {
         var keyword = $('#sel-keywords').val();
         var start = $("#startdate").val();
         var start_unixtime = new Date(start).getTime() / 1000
-        alert(start_unixtime);
         $.ajax({
             type: "POST",
             url: "getTweets",
@@ -282,13 +326,41 @@
             data: {"keyword": keyword, "start": start_unixtime},
             success: function (msg) {
                 hideLoading();
-                func(msg);
+                processData(msg);
             },
             error: function () {
                 hideLoading();
                 alert("There is something wrong with the server.");
             }
         });
+    }
+
+    function processData(msg) {
+        clearAll();
+        for (var i = 0; i < msg.length; i++) {
+            var tweet = msg[i];
+            sentiment_all.push(tweet);
+            if (tweet['sentiment'] == 0.0) {
+                sentiment_neutral.push(tweet);
+            } else if (tweet['sentiment'] > 0) {
+                sentiment_positive.push(tweet);
+            } else {
+                sentiment_negative.push(tweet);
+            }
+            total_sentiment += tweet['sentiment'];
+            total_counter++;
+        }
+        $('#numoftweets').html(total_counter);
+    }
+
+    function clearAll() {
+        clearMap();
+        total_sentiment = 0;
+        total_counter = 0;
+        sentiment_positive = [];
+        sentiment_negative = [];
+        sentiment_neutral = [];
+        sentiment_all = [];
     }
 
     function showLoading() {
@@ -301,14 +373,16 @@
     }
 
     $(document).ready(function () {
+        $('#btn-getdata').click(function() {
+            getData();
+        });
         $('#btn-tweets').click(function () {
-            getData(displayTweet);
-            $('#description').html("You can click the markers to see the detail tweet.");
-
+            displayTweet();
+            $('#description').html("This is the text of tweet as well as their sentiment.");
         });
 
         $('#btn-heatmap').click(function () {
-            getData(displayHeatMap);
+            displayHeatMap();
             $('#description').html("This is the heat map of tweets in this period.");
         });
 
