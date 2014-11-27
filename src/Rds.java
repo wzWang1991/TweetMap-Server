@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
-
 
 public class Rds {
     private final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
@@ -49,7 +47,7 @@ public class Rds {
             try {
                 Class.forName(JDBC_DRIVER);
                 System.out.println("Connecting to database...");
-                conn = DriverManager.getConnection(DB_URL, "xiaojing", password);
+                conn = DriverManager.getConnection(DB_URL, "xiaojing", "exin82533");
                 break;
             } catch (Exception e) {
             	e.printStackTrace();
@@ -147,23 +145,19 @@ public class Rds {
             ResultSet rs = stmt.executeQuery(sql);
 
             while(rs.next()){
-            	
-            	Boolean sen = rs.getBoolean("sentiment_exist");
-            	if (sen) {
             	String id = rs.getString("id_str");
 
-            	String text = rs.getString("text");
-            	String keyword = rs.getString("keyword");
-            	String user = rs.getString("user");
-            	String c1 = rs.getString("latitude");
-            	String c2 = rs.getString("longitude");
-            	String time = rs.getString("created_at");
-            	String sentiment = rs.getString("sentiment");
+                String text = rs.getString("text");
+                String keyword = rs.getString("keyword");
+                String user = rs.getString("user");
+                String c1 = rs.getString("latitude");
+                String c2 = rs.getString("longitude");
+                String time = rs.getString("created_at");
+                Boolean sen = rs.getBoolean("sentiment_exist");
 
-            	res.add(new TweetRequest(id, time, text, user, Double.valueOf(c2), Double.valueOf(c1), Double.valueOf(sentiment)));
-
+                
+                System.out.println("Keyword:" + keyword + "User:" + user + " Text:" + text+ " Created_at:"+ time + " id:"+id+ " sen:" + sen + " C1:" + c1);
                 count++;
-            	}
             }
 
             rs.close();
@@ -277,8 +271,7 @@ public class Rds {
 	
 	            ps.close();
 	            break;
-	        } catch (MySQLIntegrityConstraintViolationException e) {
-	        	
+	            
 	        } catch (SQLException e) {
             	System.err.println("Reconnect to database.");
             	init();
