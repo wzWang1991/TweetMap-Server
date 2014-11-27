@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 public class Tweet {
-    private long id_str;
+    private String id_str;
     private String created_at;
     private String text;
     private String user;
@@ -16,7 +16,7 @@ public class Tweet {
     	
     }
     
-    public Tweet(long id, String created_at, String text, String user, double longitude, double latitude) {
+    public Tweet(String id, String created_at, String text, String user, double longitude, double latitude) {
     	this.id_str = id;
     	this.created_at = created_at;
     	this.text = text;
@@ -25,11 +25,11 @@ public class Tweet {
     	this.latitude = latitude;
     }
 
-	public long getId_str() {
+	public String getId_str() {
 		return id_str;
 	}
 
-	public void setId_str(long id_str) {
+	public void setId_str(String id_str) {
 		this.id_str = id_str;
 	}
 

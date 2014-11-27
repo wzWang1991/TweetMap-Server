@@ -41,13 +41,16 @@ public class Rds {
     }
     
     public synchronized void init() {
-        try {
-            Class.forName(JDBC_DRIVER);
-            System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(DB_URL, "xiaojing", password);
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
+    	while (true) {
+            try {
+                Class.forName(JDBC_DRIVER);
+                System.out.println("Connecting to database...");
+                conn = DriverManager.getConnection(DB_URL, "xiaojing", password);
+                break;
+            } catch (Exception e) {
+            	e.printStackTrace();
+            }
+    	}
     }
     
     public synchronized void createTable(String name) {
@@ -207,29 +210,31 @@ public class Rds {
         System.out.println("Inserting into table " +table );
         String sql = "INSERT INTO " + table + " VALUES (?,?,?,?,?,?,?,?,?)";
         PreparedStatement ps;
-
-        try {
-            ps = conn.prepareStatement(sql);
-            String timestamp = convertTime(created_at);
-   
-            ps.setString(1, id_str);
-            ps.setString(2, keyword);
-            ps.setString(3, user);
-            ps.setString(4, text);
-            ps.setString(5, latitude);
-            ps.setString(6, longitude);
-            ps.setString(7, timestamp);
-            ps.setBoolean(8, false);
-            ps.setDouble(9, 0.0);
-
-            ps.executeUpdate();
-
-            ps.close();
-
-            
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        while (true) {
+	        try {
+	            ps = conn.prepareStatement(sql);
+	            String timestamp = convertTime(created_at);
+	   
+	            ps.setString(1, id_str);
+	            ps.setString(2, keyword);
+	            ps.setString(3, user);
+	            ps.setString(4, text);
+	            ps.setString(5, latitude);
+	            ps.setString(6, longitude);
+	            ps.setString(7, timestamp);
+	            ps.setBoolean(8, false);
+	            ps.setDouble(9, 0.0);
+	
+	            ps.executeUpdate();
+	
+	            ps.close();
+	            break;
+	            
+	        } catch (SQLException e) {
+            	System.err.println("Reconnect to database.");
+            	init();
+	            e.printStackTrace();
+	        }
         }
 
 
@@ -238,23 +243,27 @@ public class Rds {
     public synchronized void update(String id, double value){
     	String sql = "update tweet_sentiment set sentiment = ? and sentiment_exist = ? where id_str = ?";
     	PreparedStatement ps;
-    	 try {
-             ps = conn.prepareStatement(sql);
-             
-             ps.setDouble(1, value);
-             ps.setBoolean(2, true);
-             ps.setString(3, id);
+    	while (true) {
+			 try {
+			     ps = conn.prepareStatement(sql);
+			     
+			     ps.setDouble(1, value);
+			     ps.setBoolean(2, true);
+			     ps.setString(3, id);
+			
+			
+			     ps.executeUpdate();
+			
+			     ps.close();
+			     break;
+			     
+			 } catch (SQLException e) {
+            	System.err.println("Reconnect to database.");
+            	init();
+			     e.printStackTrace();
+			 }
+    	}
 
-
-             ps.executeUpdate();
-
-             ps.close();
-
-             
-         } catch (SQLException e) {
-             // TODO Auto-generated catch block
-             e.printStackTrace();
-         }
     	
     }
 }

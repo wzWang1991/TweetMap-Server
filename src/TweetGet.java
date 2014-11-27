@@ -48,7 +48,8 @@ public final class TweetGet {
            .setOAuthAccessTokenSecret(twitterKey.getProperty("tokenSecret"));
          
         sqs = new Sqs();
-        queueUrl = sqs.createQueue("testQueue");
+//        queueUrl = sqs.createQueue("testQueue");
+        queueUrl = "https://sqs.us-east-1.amazonaws.com/846524277299/TweetMap";
         System.out.println(queueUrl);
 //        sqs.receiveMessage("https://sqs.us-west-2.amazonaws.com/452649417432/testQueue");
 //        sqs.deleteQueue("https://sqs.us-west-2.amazonaws.com/452649417432/testQueue");
@@ -67,7 +68,7 @@ public final class TweetGet {
         twitterStream = new TwitterStreamFactory(cb.build()).getInstance();
         StatusListener listener = new StatusListener() {
         	
-        	public void handleTweet(String keyword, long id_str, String text, String user, String created_at, double latitude, double longitude){	
+        	public void handleTweet(String keyword, String id_str, String text, String user, String created_at, double latitude, double longitude){	
                 System.out.println("Keyword:" + keyword + "User:" + user + " Text:" + text+ " Created_at:"+ created_at + " id:"+id_str);
         		Rds rds = Rds.getInstance();
         		if (!rds.isPasswordSet())
@@ -75,6 +76,7 @@ public final class TweetGet {
                 rds.insert(String.valueOf(id_str), keyword, user, text, String.valueOf(latitude), String.valueOf(longitude), created_at);
                 //TODO: send what kind of message?
                 Tweet tweet = new Tweet(id_str, created_at, text, user, longitude, latitude);
+                System.out.println(gson.toJson(tweet));
                 sqs.sendMessage(queueUrl, gson.toJson(tweet));
         	}
         	
@@ -84,8 +86,8 @@ public final class TweetGet {
             	
             	for(String s: keywords){
             		if(text.contains(s)){
-            			if(status.getGeoLocation()!=null){
-                    		handleTweet(s, status.getId(), status.getText(), status.getUser().getScreenName(), status.getCreatedAt().toString(), status.getGeoLocation().getLatitude(), status.getGeoLocation().getLongitude());
+            			if(status.getGeoLocation() != null){
+                    		handleTweet(s, String.valueOf(status.getId()), status.getText(), status.getUser().getScreenName(), status.getCreatedAt().toString(), status.getGeoLocation().getLatitude(), status.getGeoLocation().getLongitude());
             			} else {
             				System.out.println("get a tweet without coordinates " + s);
             			}
