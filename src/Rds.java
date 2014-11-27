@@ -241,7 +241,7 @@ public class Rds {
     }
     
     public synchronized void update(String id, double value){
-    	String sql = "update tweet_sentiment set sentiment = ? and sentiment_exist = ? where id_str = ?";
+    	String sql = "update tweet_sentiment set sentiment = ?, sentiment_exist = ? where id_str = ?";
     	PreparedStatement ps;
     	while (true) {
 			 try {
