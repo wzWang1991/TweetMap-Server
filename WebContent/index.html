@@ -60,7 +60,7 @@
     <div class="row">
         <div class="col-md-3">
             <p>Start time:</p>
-            <input type="date" name="startdate">
+            <input type="date" name="startdate" id="startdate">
             <p>
                 Key word:
             </p>
@@ -85,6 +85,10 @@
             </p>
 
             <div class="well" id="description">Description for each mode.</div>
+            <p>
+                Overall Sentiment:
+            </p>
+            <div id="overall_sentiment">0</div>
         </div>
         <div class="col-md-9" id="foo">
         <div id="loading">
@@ -134,7 +138,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.min.js"></script>
 
-<script src="dist/js/jQRangeSlider-min.js"></script>
 
 <script>
     function unix_to_datetime(unix) {
@@ -149,14 +152,6 @@
         return "0" + num;
     }
 
-    $("#slider").rangeSlider({
-        bounds: {min: 1414267917, max: 1414351381},
-        formatter: function (val) {
-            return unix_to_datetime(val);
-        },
-        defaultValues: {min: 1414295738, max: 1414324404},
-        step: 1
-    });
 </script>
 
 <script src="dist/js/bootstrap.min.js"></script>
@@ -231,14 +226,23 @@
         });
     }
 
+
+    var total_sentiment = 0;
+    var total_counter = 0;
     function displayTweet(msg) {
         clearMap();
+        total_sentiment = 0;
+        total_counter = 0;
         for (var i = 0; i < msg.length; i++) {
             var point = msg[i];
-            var myLatlng = new google.maps.LatLng(point['coor2'], point['coor1']);
+            var myLatlng = new google.maps.LatLng(point['latitude'], point['longitude']);
             addTweetMarker(myLatlng, point['text']);
+            total_sentiment = total_sentiment + point['sentiment'];
         }
         mc = new MarkerClusterer(map, markers);
+        total_counter = total_counter + msg.length;
+        var overall_sentiment = total_sentiment / total_counter;
+        $('#overall_sentiment').html(overall_sentiment);
     }
 
     function displayHeatMap(msg) {
@@ -246,7 +250,7 @@
         var tweetPoints = [];
         for (var i = 0; i < msg.length; i++) {
             var point = msg[i];
-            var myLatlng = new google.maps.LatLng(point['coor2'], point['coor1']);
+            var myLatlng = new google.maps.LatLng(point['latitude'], point['longitude']);
             tweetPoints.push(myLatlng);
         }
         var pointArray = new google.maps.MVCArray(tweetPoints);
@@ -268,18 +272,20 @@
 
     function getData(func) {
         var keyword = $('#sel-keywords').val();
-        var min = $("#slider").rangeSlider("min").toString();
-        var max = $("#slider").rangeSlider("max").toString();
+        var start = $("#startdate").val();
+        var start_unixtime = new Date(start).getTime() / 1000
+        alert(start_unixtime);
         $.ajax({
             type: "POST",
-            url: "getpoints",
+            url: "getTweets",
             beforeSend: showLoading,
-            data: {"keyword": keyword, "start": min.concat("000"), "end": max.concat("000")},
+            data: {"keyword": keyword, "start": start_unixtime},
             success: function (msg) {
                 hideLoading();
                 func(msg);
             },
             error: function () {
+                hideLoading();
                 alert("There is something wrong with the server.");
             }
         });
@@ -312,26 +318,7 @@
     var webSocket = null;
     var realTimeMode = false;
     $(document).ready(function () {
-        $('#btn-enterrealtime').click(function () {
-            clearMap();
-            $('#sel-keywords').prop('disabled', true);
-            $('.btn-modes').prop('disabled', true);
-            $('#myModal').modal('hide');
-            $('#btn-realtime').hide();
-            $('#btn-exitrealtime').show();
-            connectToServer();
-            $('#description').html("Now you are in Real Time Mode. You can click the markers to see the content of tweet.");
-        });
-        $('#btn-exitrealtime').click(function () {
-            clearMap();
-            $('#sel-keywords').prop('disabled', false);
-            $('.btn-modes').prop('disabled', false);
-            $('#btn-realtime').show();
-            $('#btn-exitrealtime').hide();
-            webSocket.close();
-            webSocket = null;
-
-        });
+        connectToServer();
     });
     function connectToServer() {
         if (webSocket == null) {
@@ -353,8 +340,16 @@
     }
     function onMessage(evt) {
         var msg = JSON.parse(evt.data);
-        var myLatlng = new google.maps.LatLng(msg['coordinates']['coordinates'][1], msg['coordinates']['coordinates'][0]);
-        addRealTimeTweetMarker(myLatlng, msg['text']);
+        var keyword = $('#sel-keywords').val();
+        if (msg['text'].indexOf(keyword) > -1) {
+            var myLatlng = new google.maps.LatLng(msg['latitude'], msg['longitude']);
+            addRealTimeTweetMarker(myLatlng, msg['user'] + ": " + msg['text'] + " | Sentiment: " + msg['sentiment']);
+            total_sentiment += msg['sentiment'];
+            total_counter++;
+            var overall_sentiment = total_sentiment / total_counter;
+            $('#overall_sentiment').html(overall_sentiment);
+        }
+
 
     }
 
