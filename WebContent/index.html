@@ -57,20 +57,10 @@
         <a class="btn btn-lg btn-primary" href="https://github.com/wzWang1991/TweetMapServer" role="button">Codes on Github &raquo;</a>
     </div>
 
-    <div class="row" id="sliderconainer">
-        <div class="col-md-10">Pick a time range:
-            <div id="slider"></div>
-        </div>
-        <div id="rangebuttoncontainer">
-            <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#myModal" id="btn-realtime">
-                Switch to Real Time Mode
-            </button>
-            <button type="submit" class="btn btn-danger" id="btn-exitrealtime">Exit Real Time Mode</button>
-        </div>
-    </div>
-
     <div class="row">
         <div class="col-md-3">
+            <p>Start time:</p>
+            <input type="date" name="startdate">
             <p>
                 Key word:
             </p>
@@ -326,7 +316,6 @@
             clearMap();
             $('#sel-keywords').prop('disabled', true);
             $('.btn-modes').prop('disabled', true);
-            $('#slider').rangeSlider("disable");
             $('#myModal').modal('hide');
             $('#btn-realtime').hide();
             $('#btn-exitrealtime').show();
@@ -337,7 +326,6 @@
             clearMap();
             $('#sel-keywords').prop('disabled', false);
             $('.btn-modes').prop('disabled', false);
-            $('#slider').rangeSlider("enable");
             $('#btn-realtime').show();
             $('#btn-exitrealtime').hide();
             webSocket.close();
