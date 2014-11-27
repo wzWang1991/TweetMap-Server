@@ -25,7 +25,6 @@ import twitter4j.conf.ConfigurationBuilder;
  */
 public final class TweetGet {
 	List<String> keywords = new ArrayList<String>();
-	Rds rds;
 	Sqs sqs;
 	String queueUrl = null;
 	TwitterStream twitterStream;
@@ -54,9 +53,9 @@ public final class TweetGet {
 //        sqs.receiveMessage("https://sqs.us-west-2.amazonaws.com/452649417432/testQueue");
 //        sqs.deleteQueue("https://sqs.us-west-2.amazonaws.com/452649417432/testQueue");
         
-        rds = new Rds(readPass());
 
-        rds.createTable("tweet_sentiment");
+
+//        rds.createTable("tweet_sentiment");
 //        rds.select();
 //        rds.deleteTable("tweet_sentiment");
         
@@ -70,6 +69,9 @@ public final class TweetGet {
         	
         	public void handleTweet(String keyword, long id_str, String text, String user, String created_at, double latitude, double longitude){	
                 System.out.println("Keyword:" + keyword + "User:" + user + " Text:" + text+ " Created_at:"+ created_at + " id:"+id_str);
+        		Rds rds = Rds.getInstance();
+        		if (!rds.isPasswordSet())
+        			rds.setPassword(readPass());
                 rds.insert(String.valueOf(id_str), keyword, user, text, String.valueOf(latitude), String.valueOf(longitude), created_at);
                 //TODO: send what kind of message?
                 Tweet tweet = new Tweet(id_str, created_at, text, user, longitude, latitude);

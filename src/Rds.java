@@ -1,8 +1,3 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -17,28 +12,45 @@ public class Rds {
     private final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
     private final String DB_URL = "jdbc:mysql://tweetmap.crsarl5br9bw.us-east-1.rds.amazonaws.com:3306/tweet";
     public Connection conn = null;
-    public String table = null;
-
-    public Rds(String password){
-        String pass = password;
-
-    	try {
-            Class.forName("com.mysql.jdbc.Driver");
-
+    public String table = "tweet_sentiment";
+    private String password = null;
+    
+    private static Rds instance = null;
+    private Rds() {
+    	conn = null;
+    }
+    
+    public synchronized static Rds getInstance() {
+    	if (instance == null)
+    		instance = new Rds();
+    	return instance;
+    }
+    
+    public boolean isConnected() {
+    	return conn != null;
+    }
+    
+    public void setPassword(String password) {
+    	this.password = password;
+    	if (conn == null)
+    		init();
+    }
+    
+    public boolean isPasswordSet() {
+    	return this.password != null;
+    }
+    
+    public synchronized void init() {
+        try {
+            Class.forName(JDBC_DRIVER);
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(DB_URL, "xiaojing", pass);
-            System.out.println("connection finished");
-
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            conn = DriverManager.getConnection(DB_URL, "xiaojing", password);
+        } catch (Exception e) {
+        	e.printStackTrace();
         }
     }
     
-    public void createTable(String name) {
+    public synchronized void createTable(String name) {
     	this.table = name;
         System.out.println("Creating table in given database...");
         Statement stmt;
@@ -65,7 +77,7 @@ public class Rds {
 
     }
 
-    public void deleteTable(String name) {
+    public synchronized void deleteTable(String name) {
         System.out.println("Deleting table in given database...");
         Statement stmt;
         try {
@@ -81,9 +93,9 @@ public class Rds {
 
     }
 
-    static HashMap<String, String> map = new HashMap<String, String>();
+    HashMap<String, String> map = new HashMap<String, String>();
 
-    private static void createMap() {
+    private void createMap() {
         map.put("Jan", "01");
         map.put("Feb", "02");
         map.put("Mar", "03");
@@ -98,7 +110,7 @@ public class Rds {
         map.put("Dec", "12");
     }
 
-    private static String convertTime(String date) {
+    private String convertTime(String date) {
         String processed = null;
 
         if(map.size()==0){
@@ -117,7 +129,7 @@ public class Rds {
         return String.valueOf(timestamp.getTime());
     }
 
-    public String select() {
+    public synchronized String select() {
         String sql = "SELECT * FROM "+table;
 //    	String selectExpression = "select * from " + table + " where created_at > '"+start+"' and created_at < '"+end+"'";
         StringBuilder sb = new StringBuilder();
@@ -154,7 +166,7 @@ public class Rds {
     }
 
     
-    public String selectTimeRange(String table, String start, String end) {
+    public synchronized String selectTimeRange(String table, String start, String end) {
         String sql = "SELECT * FROM "+table+" WHERE created_at < '"+end+"' AND created_at > '"+start+"'";
 //    	String selectExpression = "select * from " + table + " where created_at > '"+start+"' and created_at < '"+end+"'";
         StringBuilder sb = new StringBuilder();
@@ -191,9 +203,9 @@ public class Rds {
 
     }
 
-    public void insert(String id_str, String keyword, String user, String text, String latitude, String longitude, String created_at) {
+    public synchronized void insert(String id_str, String keyword, String user, String text, String latitude, String longitude, String created_at) {
         System.out.println("Inserting into table " +table );
-        String sql = "INSERT INTO " +table + " VALUES (?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO " + table + " VALUES (?,?,?,?,?,?,?,?,?)";
         PreparedStatement ps;
 
         try {
@@ -221,5 +233,28 @@ public class Rds {
         }
 
 
+    }
+    
+    public synchronized void update(String id, double value){
+    	String sql = "update tweet_sentiment set sentiment = ? and sentiment_exist = ? where id_str = ?";
+    	PreparedStatement ps;
+    	 try {
+             ps = conn.prepareStatement(sql);
+             
+             ps.setDouble(1, value);
+             ps.setBoolean(2, true);
+             ps.setString(3, id);
+
+
+             ps.executeUpdate();
+
+             ps.close();
+
+             
+         } catch (SQLException e) {
+             // TODO Auto-generated catch block
+             e.printStackTrace();
+         }
+    	
     }
 }

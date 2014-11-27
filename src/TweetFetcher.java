@@ -39,22 +39,5 @@ public class TweetFetcher implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent arg0)  { 
          // TODO Auto-generated method stub
     }
-    
-//    public class TweetFetchThread extends Thread {
-//        public TweetFetchThread() {
-//        	super("TweetFetchThread");
-//        }
-//        public void run() {
-//        	while (true) {
-//        		System.out.println("hehe");
-//        		try {
-//					Thread.sleep(1000);
-//				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//        	}
-//        }
-//    }
 	
 }
