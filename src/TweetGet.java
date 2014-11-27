@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 
+import com.amazonaws.auth.PropertiesCredentials;
 import com.google.gson.Gson;
 
 import twitter4j.StallWarning;
@@ -47,7 +48,8 @@ public final class TweetGet {
            .setOAuthAccessToken(twitterKey.getProperty("token"))
            .setOAuthAccessTokenSecret(twitterKey.getProperty("tokenSecret"));
          
-        sqs = new Sqs();
+         PropertiesCredentials propertiesCredentials = new PropertiesCredentials(Thread.currentThread().getContextClassLoader().getResourceAsStream("AwsCredentials.properties"));
+        sqs = new Sqs(propertiesCredentials);
 //        queueUrl = sqs.createQueue("testQueue");
         queueUrl = "https://sqs.us-east-1.amazonaws.com/846524277299/TweetMap";
         System.out.println(queueUrl);

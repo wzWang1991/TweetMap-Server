@@ -22,4 +22,14 @@
   <listener>
     <listener-class>TweetFetcher</listener-class>
   </listener>
+  <servlet>
+    <description></description>
+    <display-name>handleSns</display-name>
+    <servlet-name>handleSns</servlet-name>
+    <servlet-class>handleSns</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>handleSns</servlet-name>
+    <url-pattern>/handleSns</url-pattern>
+  </servlet-mapping>
 </web-app>

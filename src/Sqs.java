@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -44,18 +45,8 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 public class Sqs {
 	private AmazonSQS sqs;
 	
-	public Sqs(){
-		AWSCredentials credentials = null;
-        try {
-            credentials = new ProfileCredentialsProvider("default").getCredentials();
-        } catch (Exception e) {
-            throw new AmazonClientException(
-                    "Cannot load the credentials from the credential profiles file. " +
-                    "Please make sure that your credentials file is at the correct " +
-                    "location (/Users/daniel/.aws/credentials), and is in valid format.",
-                    e);
-        }
-
+	public Sqs(PropertiesCredentials p){
+		AWSCredentials credentials = p;
         sqs = new AmazonSQSClient(credentials);
         Region usEast1 = Region.getRegion(Regions.US_EAST_1);
         sqs.setRegion(usEast1);
