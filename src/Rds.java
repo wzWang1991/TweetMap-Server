@@ -5,7 +5,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
 
 public class Rds {
@@ -265,7 +269,8 @@ public class Rds {
 	
 	            ps.close();
 	            break;
-	            
+	        } catch (MySQLIntegrityConstraintViolationException e) {
+	        	
 	        } catch (SQLException e) {
             	System.err.println("Reconnect to database.");
             	init();
