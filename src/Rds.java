@@ -168,6 +168,42 @@ public class Rds {
 
     }
 
+    public synchronized List<TweetRequest> select (String key, String start) {
+    	String sql = "SELECT * FROM "+table+" WHERE created_at > '"+start+"' and keyword = '"
+    			+ key + "'";
+    	StringBuilder sb = new StringBuilder();
+        Statement stmt;
+        List<TweetRequest> res = new ArrayList<TweetRequest> ();
+        int count = 0;
+        try {
+            stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while(rs.next()){
+            	String id = rs.getString("id_str");
+
+            	String text = rs.getString("text");
+            	String keyword = rs.getString("keyword");
+            	String user = rs.getString("user");
+            	String c1 = rs.getString("latitude");
+            	String c2 = rs.getString("longitude");
+            	String time = rs.getString("created_at");
+            	Boolean sen = rs.getBoolean("sentiment_exist");
+            	String sentiment = rs.getString("sentiment");
+
+            	res.add(new TweetRequest(id, time, text, user, Double.valueOf(c2), Double.valueOf(c1), Double.valueOf(sentiment)));
+
+                count++;
+            }
+
+            rs.close();
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return res;
+    }
     
     public synchronized String selectTimeRange(String table, String start, String end) {
         String sql = "SELECT * FROM "+table+" WHERE created_at < '"+end+"' AND created_at > '"+start+"'";
